@@ -1,0 +1,31 @@
+			<h1>Mars Rover Status <small>(<a href="/commands/show">restart</a>)</small></h1>
+			<h2>Ruby on Rails 2.3.8 Version</h2>
+			<h3>Notice the Ruby on Rails 2.3.8 Version runs independent from the JavaScript/jQuery Version.</h3>
+			
+			<table>
+			  <tr>
+			    <th align="center">X-Coord</th>
+			    <th align="center">Y-Coord</th>
+			    <th align="center">Direction</th>
+			  </tr>
+			
+			<% @commands.each do |command| %>
+			  <tr>
+			    <td align="center"><%=h command[:x] %></td>
+			    <td align="center"><%=h command[:y] %></td>
+			    <td align="center"><%=h command[:direction] %></td>
+			  </tr>
+			<% end %>
+			</table>
+			
+			<br />
+			<p>Enter the Rover Commands below and watch the output from each command. <a href="#info-toggle" id="a_info" onclick="javascript:window.parent.toggleInfo();"><big><b>?</b></big></a></p>
+			<form action="/commands/process/" enctype="application/x-www-form-urlencoded">
+				<b>Command: </b>&nbsp;<input id="command" name="command" size="30" />&nbsp;&nbsp;
+				<% @commands.each do |command| %>
+					<input type="hidden" name="ptX" value="<%=h command[:x] %>"/>
+					<input type="hidden" name="ptY" value="<%=h command[:y] %>"/>
+					<input type="hidden" name="direction" value="<%=h command[:direction] %>"/>
+				<% end %>
+				<input id="btnSubmit" type="submit" value="Submit"/>
+			</form>

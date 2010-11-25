@@ -1,0 +1,151 @@
+class CommandProcessor
+  @@validDirections = 'NSEW'
+  
+  @@northDirection = 'N'
+  @@southDirection = 'S'
+  @@eastDirection = 'E'
+  @@westDirection = 'W'
+
+  @@validCommands = 'LRM'
+
+  @@leftCommand = 'L'
+  @@rightCommand = 'R'
+  @@moveCommand = 'M'
+  
+  @@tests = []
+  @@items = []
+  
+  def x
+    @ptX
+  end
+
+  def y
+    @ptY
+  end
+
+  def dir
+    @direction
+  end
+
+  def doMove
+    if (@direction == @@northDirection)
+      @ptY = @ptY + 1
+    elsif (@direction == @@eastDirection)
+      @ptX = @ptX + 1
+    elsif (@direction == @@southDirection)
+      @ptY = @ptY - 1
+    elsif (@direction == @@westDirection)
+      @ptX = @ptX - 1
+    end
+  end
+  
+  def doSpin(d)
+    @direction = ( (@@validDirections.index(d)) or (@@validCommands.index(d)) ) ? d : @direction
+  end
+  
+  def doCommand(c)
+    if (c == @@leftCommand)
+      if (@direction == @@northDirection)
+        doSpin(@@westDirection)
+      elsif (@direction == @@westDirection)
+        doSpin(@@southDirection)
+      elsif (@direction == @@southDirection)
+        doSpin(@@eastDirection)
+      elsif (@direction == @@eastDirection)
+        doSpin(@@northDirection)
+      end
+    else
+      if (c == @@rightCommand)
+        if (@direction == @@northDirection)
+          doSpin(@@eastDirection)
+        elsif (@direction == @@eastDirection)
+          doSpin(@@southDirection)
+        elsif (@direction == @@southDirection)
+          doSpin(@@westDirection)
+        elsif (@direction == @@westDirection)
+          doSpin(@@northDirection)
+        end
+      elsif (c == @@moveCommand)
+        doMove
+      end
+    end
+  end
+  
+  def parseCommand(c)
+    if @@validCommands.index(c)
+      doCommand(c)
+    else
+      toks = c.split()
+      toks.length.times do |i|
+        aTok = toks[i]
+        if aTok.length > 1
+          aTok.length.times do |i|
+            aCmd = aTok[i, 1]
+            doCommand(aCmd)
+          end
+        else
+          n = aTok.to_f
+          b = n > 0
+          if (b)
+            @@tests.push(b)
+            @@items.push(aTok)
+            if ( (@@tests.length == 2) && (@@tests[0] == true) && (@@tests[1] == true) )
+              @ptX = @@items.shift().to_i
+              @ptY = @@items.shift().to_i
+              b = @@tests.shift()
+              b = @@tests.shift()
+            end
+          elsif @@validDirections.index(aTok)
+            @direction = aTok
+          elsif @@validCommands.index(aTok)
+            doCommand(aTok)
+          end
+        end
+      end
+    end
+  end
+end
+
+def assert
+  raise "Assertion failed !" unless yield if $DEBUG
+end
+
+cmds = [
+  {:cmd => '1 2 N', :expect => '1 2 N'},
+  {:cmd => 'L', :expect => '1 2 W'},
+  {:cmd => 'M', :expect => '0 2 W'},
+  {:cmd => 'L', :expect => '0 2 S'},
+  {:cmd => 'M', :expect => '0 1 S'},
+  {:cmd => 'L', :expect => '0 1 E'},
+  {:cmd => 'M', :expect => '1 1 E'},
+  {:cmd => 'L', :expect => '1 1 N'},
+  {:cmd => 'M', :expect => '1 2 N'},
+  {:cmd => 'M', :expect => '1 3 N'},
+
+  {:cmd => '3 3 E', :expect => '3 3 E'},
+  {:cmd => 'M', :expect => '4 3 E'},
+  {:cmd => 'M', :expect => '5 3 E'},
+  {:cmd => 'R', :expect => '5 3 S'},
+  {:cmd => 'M', :expect => '5 2 S'},
+  {:cmd => 'M', :expect => '5 1 S'},
+  {:cmd => 'R', :expect => '5 1 W'},
+  {:cmd => 'M', :expect => '4 1 W'},
+  {:cmd => 'R', :expect => '4 1 N'},
+  {:cmd => 'R', :expect => '4 1 E'},
+  {:cmd => 'M', :expect => '5 1 E'},
+  
+  {:cmd => '1 2 N', :expect => '1 2 N'},
+  {:cmd => 'LMLMLMLMM', :expect => '1 3 N'},
+  {:cmd => '3 3 E', :expect => '3 3 E'},
+  {:cmd => 'MMRMMRMRRM', :expect => '5 1 E'}
+]
+
+c = CommandProcessor.new
+
+cmds.length.times do |i|
+  aCmd = cmds[i]
+  x = c.parseCommand(aCmd[:cmd])
+  s = c.x.to_s+' '+c.y.to_s+' '+c.dir
+  puts s
+  assert { s == aCmd[:expect] }
+end
